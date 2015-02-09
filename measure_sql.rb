@@ -1,0 +1,52 @@
+#!/usr/bin/env ruby -UK
+# encoding: UTF-8
+
+##
+# Parse the development log and extract the SQL SELECT statements and make
+# them generic and collect the timings to produce a summary.
+#
+# From this data you may be able to identify where additional indexed may
+# improve performance or perhaps indicate where data should be cached by the
+# application if the ORM is making unnecessary calls.
+##
+
+data = Hash.new
+
+def clean_select(line)
+  line.gsub('"','').
+    gsub(/.\[.m/,'').   # Remove the ansi escape codes
+    gsub(/.\[..m/,'').  # Remove the ansi escape codes
+    gsub(/[0-9]+/,'x')  # Squish the numbers
+end
+
+ARGF.each do |line|
+  i = line.index('SELECT')
+  if i
+    select = clean_select(line[i..-1])
+    x1 = line.index('(')
+    x2 = line.index(')')
+    if x1 and x2
+      ms = line[(x1+1)...x2].to_f
+
+      unless data.has_key?(select)
+        data[select] = {:count => 0, :ms => 0.0}
+      end
+      data[select][:count] += 1
+      data[select][:ms] += ms
+    end
+  end
+end
+
+total_count = 0
+total_ms = 0.0
+
+puts " Count   Total ms     Avg ms Query"
+puts "------ ---------- ---------- #{"-" * data.keys.map{|k| k.size}.max}"
+data.each do |select, v|
+  puts "%6d %10.1f %10.3f %s" % [v[:count], v[:ms], v[:ms] / v[:count].to_f, select]
+
+  total_count += v[:count]
+  total_ms    += v[:ms]
+end
+puts "------ ---------- ---------- #{"-" * data.keys.map{|k| k.size}.max}"
+puts "%6d %10.1f %10.3f" % [total_count, total_ms, total_ms / total_count.to_f]
