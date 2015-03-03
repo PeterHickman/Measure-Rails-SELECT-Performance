@@ -13,10 +13,20 @@
 data = Hash.new
 
 def clean_select(line)
-  line.gsub('"','').
-    gsub(/.\[.m/,'').   # Remove the ansi escape codes
-    gsub(/.\[..m/,'').  # Remove the ansi escape codes
-    gsub(/[0-9]+/,'x')  # Squish the numbers
+  line = line.gsub('"','').
+    gsub(/.\[.m/,'').       # Remove the ansi escape codes
+    gsub(/.\[..m/,'').      # Remove the ansi escape codes
+    gsub(/[0-9]+/,'x').     # Squish the numbers
+    gsub(/E'[^']+'/, "'s'") # Squish strings
+
+  ##
+  # Compresses (x,x,x,x...x) down to (x)
+  ##
+  while line.include?('(x,x')
+    line = line.gsub(/\(x,x/,'(x')
+  end
+
+  return line
 end
 
 ARGF.each do |line|
