@@ -14,10 +14,10 @@ data = Hash.new
 
 def clean_select(line)
   line = line.gsub('"','').
-    gsub(/.\[.m/,'').       # Remove the ansi escape codes
-    gsub(/.\[..m/,'').      # Remove the ansi escape codes
-    gsub(/[0-9]+/,'x').     # Squish the numbers
-    gsub(/E'[^']+'/, "'s'") # Squish strings
+    gsub(/.\[.m/,'').       # Remove the ansi escape codes that the log adds
+    gsub(/.\[..m/,'').      # Remove the ansi escape codes that the log adds
+    gsub(/[0-9]+/,'x').     # Squish a run of digits
+    gsub(/E'[^']+'/, "'s'") # Squish a run of characters
 
   ##
   # Compresses (x,x,x,x...x) down to (x)
