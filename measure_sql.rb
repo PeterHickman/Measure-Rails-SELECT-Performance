@@ -26,6 +26,18 @@ def clean_select(line)
     line = line.gsub(/\(x,x/,'(x')
   end
 
+  ##
+  # same for ('s','s','s'...'s') down to ('s')
+  ##
+  while line.include?("('s','s'")
+    line = line.gsub(/\('s','s'/,"('s'")
+  end
+
+  ##
+  # We are not interested in the part between the SELECT and FROM
+  ##
+  line.gsub!(/SELECT .* FROM/,'SELECT * FROM')
+
   return line
 end
 
