@@ -36,7 +36,7 @@ def clean_select(line)
   ##
   # We are not interested in the part between the SELECT and FROM
   ##
-  line.gsub!(/SELECT .* FROM/,'SELECT * FROM')
+  # line.gsub!(/SELECT .* FROM/,'SELECT * FROM')
 
   return line
 end
@@ -64,11 +64,11 @@ total_ms = 0.0
 
 puts " Count   Total ms     Avg ms Query"
 puts "------ ---------- ---------- #{"-" * data.keys.map{|k| k.size}.max}"
-data.each do |select, v|
-  puts "%6d %10.1f %10.3f %s" % [v[:count], v[:ms], v[:ms] / v[:count].to_f, select]
+data.keys.sort.each do |key|
+  puts "%6d %10.1f %10.3f %s" % [data[key][:count], data[key][:ms], data[key][:ms] / data[key][:count].to_f, key]
 
-  total_count += v[:count]
-  total_ms    += v[:ms]
+  total_count += data[key][:count]
+  total_ms    += data[key][:ms]
 end
 puts "------ ---------- ---------- #{"-" * data.keys.map{|k| k.size}.max}"
 puts "%6d %10.1f %10.3f" % [total_count, total_ms, total_ms / total_count.to_f]
