@@ -36,7 +36,8 @@ def clean_select(line)
   ##
   # We are not interested in the part between the SELECT and FROM
   ##
-  # line.gsub!(/SELECT .* FROM/,'SELECT * FROM')
+  from_at = line.index('FROM')
+  line = "SELECT * #{line[from_at..-1]}"
 
   return line
 end
