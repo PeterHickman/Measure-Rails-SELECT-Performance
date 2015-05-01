@@ -17,7 +17,7 @@ def clean_select(line)
     gsub(/.\[.m/,'').       # Remove the ansi escape codes that the log adds
     gsub(/.\[..m/,'').      # Remove the ansi escape codes that the log adds
     gsub(/[0-9]+/,'x').     # Squish a run of digits
-    gsub(/E'[^']+'/, "'s'") # Squish a run of characters
+    gsub(/'[^']+'/, "'s'")  # Squish a run of characters
 
   ##
   # Compresses (x,x,x,x...x) down to (x)
