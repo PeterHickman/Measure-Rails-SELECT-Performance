@@ -43,6 +43,8 @@ def clean_select(line)
 end
 
 ARGF.each do |line|
+  next if line.include?('EXPLAIN')
+
   i = line.index('SELECT')
   if i
     select = clean_select(line[i..-1])
