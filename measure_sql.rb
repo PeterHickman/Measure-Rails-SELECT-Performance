@@ -22,8 +22,8 @@ def clean_select(line)
   ##
   # Compresses (x,x,x,x...x) down to (x)
   ##
-  while line.include?('(x,x')
-    line = line.gsub(/\(x,x/,'(x')
+  while line =~ /\(x,\s*x/
+    line = line.gsub(/\(x,\s*x/,'(x')
   end
 
   ##
