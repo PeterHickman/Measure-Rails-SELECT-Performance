@@ -12,6 +12,9 @@
 
 data = Hash.new
 
+lines_found = 0
+lines_skipped = 0
+
 def clean_select(line)
   line = line.gsub('"','').
     gsub(/.\[.m/,'').       # Remove the ansi escape codes that the log adds
@@ -47,17 +50,23 @@ ARGF.each do |line|
 
   i = line.index('SELECT')
   if i
-    select = clean_select(line[i..-1])
-    x1 = line.index('(')
-    x2 = line.index(')')
-    if x1 and x2
-      ms = line[(x1+1)...x2].to_f
+    lines_found += 1
 
-      unless data.has_key?(select)
-        data[select] = {:count => 0, :ms => 0.0}
+    begin
+      select = clean_select(line[i..-1])
+      x1 = line.index('(')
+      x2 = line.index(')')
+      if x1 and x2
+        ms = line[(x1+1)...x2].to_f
+
+        unless data.has_key?(select)
+          data[select] = {:count => 0, :ms => 0.0}
+        end
+        data[select][:count] += 1
+        data[select][:ms] += ms
       end
-      data[select][:count] += 1
-      data[select][:ms] += ms
+    rescue Exception => e
+      lines_skipped += 1
     end
   end
 end
@@ -75,3 +84,5 @@ data.keys.sort.each do |key|
 end
 puts "------ ---------- ---------- #{"-" * data.keys.map{|k| k.size}.max}"
 puts "%6d %10.1f %10.3f" % [total_count, total_ms, total_ms / total_count.to_f]
+puts
+puts "Processed #{lines_found} SELECT lines, had to skip #{lines_skipped}"
