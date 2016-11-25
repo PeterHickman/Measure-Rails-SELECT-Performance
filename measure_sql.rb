@@ -47,6 +47,7 @@ end
 
 ARGF.each do |line|
   next if line.include?('EXPLAIN')
+  next if line.include?('CACHE')
 
   i = line.index('SELECT')
   if i
