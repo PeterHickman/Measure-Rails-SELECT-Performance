@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby -UK
+#!/usr/bin/env ruby
 # encoding: UTF-8
 
 ##
@@ -70,21 +70,33 @@ ARGF.each do |line|
     rescue Exception => e
       lines_skipped += 1
     end
+  elsif line.include?('BEGIN') || line.include?('COMMIT') || line.include?('ROLLBACK')
+    x1 = line.index('(')
+    x2 = line.index(')')
+    if x1 and x2
+      key = "TRANSACTION BLOCK"
+      data[key] = {:count => 0, :ms => 0.0} unless data.has_key?(key)
+
+      ms = line[(x1+1)...x2].to_f
+
+      data[key][:count] += 1 if line.include?('BEGIN')
+      data[key][:ms] += ms
+    end
   end
 end
 
 total_count = 0
 total_ms = 0.0
 
-puts " Count   Total ms     Avg ms Query"
-puts "------ ---------- ---------- #{"-" * data.keys.map{|k| k.size}.max}"
+puts "  Count   Total ms     Avg ms Query"
+puts "------- ---------- ---------- #{"-" * data.keys.map{|k| k.size}.max}"
 data.keys.sort.each do |key|
-  puts "%6d %10.1f %10.3f %s" % [data[key][:count], data[key][:ms], data[key][:ms] / data[key][:count].to_f, key]
+  puts "%7d %10.1f %10.3f %s" % [data[key][:count], data[key][:ms], data[key][:ms] / data[key][:count].to_f, key]
 
   total_count += data[key][:count]
   total_ms    += data[key][:ms]
 end
-puts "------ ---------- ---------- #{"-" * data.keys.map{|k| k.size}.max}"
-puts "%6d %10.1f %10.3f" % [total_count, total_ms, total_ms / total_count.to_f]
+puts "------- ---------- ---------- #{"-" * data.keys.map{|k| k.size}.max}"
+puts "%7d %10.1f %10.3f" % [total_count, total_ms, total_ms / total_count.to_f]
 puts
 puts "Processed #{lines_found} SELECT lines, had to skip #{lines_skipped}"
