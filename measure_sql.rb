@@ -42,16 +42,82 @@ def clean_select(line)
   line
 end
 
+def clean_update(line)
+  line = line.gsub('"', '').
+    gsub(/.\[.m/, '').       # Remove the ansi escape codes that the log adds
+    gsub(/.\[..m/, '').      # Remove the ansi escape codes that the log adds
+    gsub(/-?[0-9]+/, 'x').   # Squish a run of digits
+    gsub(/'[^']+'/, "'s'").  # Squish a run of characters
+    gsub(/\[\[.*/, '')       # Later log files add the parameters to the report
+
+  ##
+  # Compresses (x,x,x,x...x) down to (x)
+  ##
+  line = line.gsub(/\(x,\s*x/, '(x') while line =~ /\(x,\s*x/
+
+  ##
+  # same for ('s','s','s'...'s') down to ('s')
+  ##
+  line = line.gsub(/\('s','s'/, "('s'") while line.include?("('s','s'")
+
+  ##
+  # We are not interested in the part between the SELECT and FROM
+  ##
+#  from_at = line.index('FROM')
+#  line = "SELECT * #{line[from_at..-1]}"
+
+  line
+end
+
 ARGF.each do |line|
   next if line.include?('EXPLAIN')
   next if line.include?('CACHE')
 
-  i = line.index('SELECT')
-  if i
+  if line.include?('SELECT')
     lines_found += 1
+
+    i = line.index('SELECT')
 
     begin
       select = clean_select(line[i..-1])
+      x1 = line.index('(')
+      x2 = line.index(')')
+      if x1 && x2
+        data[select] = { :count => 0, :ms => 0.0 } unless data.has_key?(select)
+
+        ms = line[(x1 + 1)...x2].to_f
+
+        data[select][:count] += 1
+        data[select][:ms] += ms
+      end
+    rescue Exception => e
+      lines_skipped += 1
+    end
+  elsif line.include?('INSERT')
+    lines_found += 1
+
+    i = line.index('INSERT')
+    key = line[i..-1]
+    i = key.index('(') - 1
+    key = key[0...i]
+
+    x1 = line.index('(')
+    x2 = line.index(')')
+    if x1 && x2
+      data[key] = { :count => 0, :ms => 0.0 } unless data.has_key?(key)
+
+      ms = line[(x1 + 1)...x2].to_f
+
+      data[key][:count] += 1
+      data[key][:ms] += ms
+    end
+  elsif line.include?('UPDATE')
+    lines_found += 1
+
+    i = line.index('UPDATE')
+
+    begin
+      select = clean_update(line[i..-1])
       x1 = line.index('(')
       x2 = line.index(')')
       if x1 && x2
