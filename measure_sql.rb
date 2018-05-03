@@ -16,22 +16,7 @@ lines_found = 0
 lines_skipped = 0
 
 def clean_select(line)
-  line = line.gsub('"', '').
-    gsub(/.\[.m/, '').       # Remove the ansi escape codes that the log adds
-    gsub(/.\[..m/, '').      # Remove the ansi escape codes that the log adds
-    gsub(/-?[0-9]+/, 'x').   # Squish a run of digits
-    gsub(/'[^']+'/, "'s'").  # Squish a run of characters
-    gsub(/\[\[.*/, '')       # Later log files add the parameters to the report
-
-  ##
-  # Compresses (x,x,x,x...x) down to (x)
-  ##
-  line = line.gsub(/\(x,\s*x/, '(x') while line =~ /\(x,\s*x/
-
-  ##
-  # same for ('s','s','s'...'s') down to ('s')
-  ##
-  line = line.gsub(/\('s','s'/, "('s'") while line.include?("('s','s'")
+  line = scrub_line(line)
 
   ##
   # We are not interested in the part between the SELECT and FROM
@@ -43,6 +28,10 @@ def clean_select(line)
 end
 
 def clean_update(line)
+  scrub_line(line)
+end
+
+def scrub_line(line)
   line = line.gsub('"', '').
     gsub(/.\[.m/, '').       # Remove the ansi escape codes that the log adds
     gsub(/.\[..m/, '').      # Remove the ansi escape codes that the log adds
@@ -59,12 +48,6 @@ def clean_update(line)
   # same for ('s','s','s'...'s') down to ('s')
   ##
   line = line.gsub(/\('s','s'/, "('s'") while line.include?("('s','s'")
-
-  ##
-  # We are not interested in the part between the SELECT and FROM
-  ##
-#  from_at = line.index('FROM')
-#  line = "SELECT * #{line[from_at..-1]}"
 
   line
 end
